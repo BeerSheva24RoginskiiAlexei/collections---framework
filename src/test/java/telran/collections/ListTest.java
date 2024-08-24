@@ -1,42 +1,56 @@
 package telran.collections;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
 public abstract class ListTest extends CollectionTest {
     List<Integer> list;
+
     @Override
     void setUp() {
         super.setUp();
-        list = (List<Integer>) collection;
-    }
-
-
-    @Test 
-    void addTestList () {
-        list.add(2, 12);
-        list.add(6, 19);
-        assertEquals(12, list.get(2));
-        assertEquals(19, list.get(6));
-        assertEquals(array.length + 2, collection.size());
+        list = (List<Integer>) super.collection;
     }
 
     @Test
-    void getTestList() {
-        assertEquals(20, list.get(2));
-        assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.get(100));
-    }
+    void listGetTest() {
+        assertEquals(3, list.get(0));
+        assertEquals(1, list.get(3));
 
-
-    @Test 
-    void indexOfTest(){
-        assertEquals(2, list.indexOf(20));
-        assertEquals(-1, list.indexOf(22));
+        assertThrows(IndexOutOfBoundsException.class, () -> list.get(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> list.get(100));
     }
 
     @Test
-    void lastIndexOfTestList() {
-        assertEquals(8, list.lastIndexOf(20));
-        assertEquals(-1, list.lastIndexOf(22));
+    void listAddTest() {
+        list.add(3, 17);
+        list.add(9, 200);
+        assertEquals(17, list.get(3));
+        assertEquals(200, list.get(9));
+        assertEquals(arr.length + 2, list.size());
+
+        assertThrows(IndexOutOfBoundsException.class, () -> list.add(-1, 1));
+        assertThrows(IndexOutOfBoundsException.class, () -> list.add(100, 1));
+    }
+
+    @Test
+    void listRemoveTest() {
+        assertEquals(1, list.remove(3));
+        assertEquals(arr.length - 1, list.size());
+
+        assertThrows(IndexOutOfBoundsException.class, () -> list.remove(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> list.remove(100));
+    }
+
+    @Test
+    void listIndexOfTest() {
+        assertEquals(1, list.indexOf(10));
+    }
+
+    @Test
+    void listLastIndexOfTest() {
+        assertEquals(4, list.lastIndexOf(10));
     }
 }
