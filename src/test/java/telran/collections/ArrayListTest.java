@@ -2,7 +2,7 @@ package telran.collections;
 
 import org.junit.jupiter.api.BeforeEach;
 
-public class ArrayListTest extends ListTest{
+public class ArrayListTest extends ListTest {
     @BeforeEach
     @Override
     void setUp() {

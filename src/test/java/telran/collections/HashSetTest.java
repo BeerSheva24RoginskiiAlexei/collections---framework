@@ -2,11 +2,11 @@ package telran.collections;
 
 import org.junit.jupiter.api.BeforeEach;
 
-public class LinkedListTest extends ListTest {
+public class HashSetTest extends SetTest {
     @BeforeEach
     @Override
     void setUp() {
-        collection = new LinkedList<>();
+        collection = new HashSet<>();
         super.setUp();
     }
 }

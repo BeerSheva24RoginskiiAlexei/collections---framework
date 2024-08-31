@@ -3,48 +3,62 @@ package telran.collections;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 
-import java.util.Objects;
-@SuppressWarnings("unchecked")
 public class ArrayList<T> implements List<T> {
     private static final int DEFAULT_CAPACITY = 16;
-    private Object [] array;
+    private Object[] array;
     private int size = 0;
-    public ArrayList(int capacity) {
-        array = new Object[capacity];
-    }
+
     public ArrayList() {
         this(DEFAULT_CAPACITY);
     }
+
+    public ArrayList(int capacity) {
+        array = new Object[capacity];
+    }
+
     @Override
     public boolean add(T obj) {
-        reallocationIfNeeded();
-        array[size++] = obj;
+        add(size, obj);
+
         return true;
-    }
-    private void reallocationIfNeeded() {
-        if(size == array.length) {
-            reallocate();
-        }
     }
 
     private void reallocate() {
-          array = Arrays.copyOf(array, array.length * 2);
+        array = Arrays.copyOf(array, array.length * 2);
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean removeIf(Predicate<T> predicate) {
+        int j = 0;
+        for (int i = 0; i < size; i++) {
+            if (predicate.negate().test((T) array[i])) {
+                array[j++] = array[i];
+            }
+        }
+        return size != (size = j);
+    }
+
     @Override
     public boolean remove(T pattern) {
-      boolean res = false;
-      int index = indexOf(pattern);
-      if (index >= 0) {
-        res = true;
-        remove(index);
-      }
-      return res;
+        int index = indexOf(pattern);
+        if (index >= 0) {
+            remove(index);
+        }
+
+        return index >= 0;
+    }
+
+    @Override
+    public boolean contains(T pattern) {
+        return indexOf(pattern) >= 0;
     }
 
     @Override
     public int size() {
-       return size;
+        return size;
     }
 
     @Override
@@ -53,78 +67,100 @@ public class ArrayList<T> implements List<T> {
     }
 
     @Override
-    public boolean contains(T pattern) {
-       return indexOf(pattern) >= 0;
-    }
-
-    @Override
     public Iterator<T> iterator() {
-        return new ArrayListIterator();
+        return new Iterator<T>() {
+            private int current = 0;
+            private boolean flNext = false;
+
+            @Override
+            public boolean hasNext() {
+                return current < size;
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public T next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                flNext = true;
+                return (T) array[current++];
+            }
+
+            @Override
+            public void remove() {
+                if(!flNext) {
+                    throw new IllegalStateException();
+                }
+                ArrayList.this.remove(--current);
+                flNext = false;
+            }
+        };
     }
 
     @Override
     public void add(int index, T obj) {
-        checkIndex(index, true);
-        reallocationIfNeeded();
-        System.arraycopy(array, index, array, index + 1, size - index);
+        if (index < 0 || index > size) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        if (size == array.length) {
+            reallocate();
+        }
+
+        System.arraycopy(array, index, array, index + 1, size++ - index);
         array[index] = obj;
-        size++;
     }
 
-    private void checkIndex(int index, boolean sizeInclusive) {
-       int limit = sizeInclusive ? size : size - 1;
-       if (index < 0 || index > limit) {
-        throw new IndexOutOfBoundsException(index);
-       }
-    }
     @Override
+    @SuppressWarnings("unchecked")
     public T remove(int index) {
-        checkIndex(index, false);
-        T res = (T)array[index];
-        size--;
-        System.arraycopy(array, index + 1, array, index, size - index);
-        return res;
+        T removedItem = (T) array[index];
+        System.arraycopy(array, index + 1, array, index, --size - index);
+
+        return removedItem;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T get(int index) {
-        checkIndex(index, false);
+        if (index < 0 || index >= size) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
         return (T) array[index];
     }
 
     @Override
     public int indexOf(T pattern) {
-        int index = 0;
-        while(index < size && !Objects.equals(array[index], pattern)) {
-            index++;
+        int res = -1;
+        int i = 0;
+        while (res < 0 && i < size) {
+            if (isEqual(pattern, array[i])) {
+                res = i;
+            }
+            i++;
         }
-        return index == size ? -1 : index;
+
+        return res;
     }
 
     @Override
     public int lastIndexOf(T pattern) {
-        int index = size - 1;
-        while(index >= 0 && !Objects.equals(array[index], pattern)) {
-            index--;
-        }
-        return index;
-    }
-    private class ArrayListIterator implements Iterator<T> {
-        int currentIndex = 0;
-        @Override
-        public boolean hasNext() {
-           return currentIndex < size;
+        int res = -1;
+        int i = size;
+        while (res < 0 && i > 0) {
+            i--;
+            if (isEqual(pattern, array[i])) {
+                res = i;
+            }
         }
 
- 
-        @Override
-        public T next() {
-            if(!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            return (T) array[currentIndex++];
-        }
-        
+        return res;
+    }
+
+    private boolean isEqual(Object o1, Object o2) {
+        return o1 == null && o2 == null || o1.equals(o2);
     }
 
 }
